@@ -177,13 +177,8 @@ class ScalableOCRState extends State<ScalableOCR> with WidgetsBindingObserver {
   // Start camera stream function
   Future startLiveFeed() async {
     _cameras = await availableCameras();
-    _controller = CameraController(_cameras[0], ResolutionPreset.max);
-    final camera = _cameras[0];
-    _controller = CameraController(
-      camera,
-      ResolutionPreset.veryHigh,
-      enableAudio: false,
-    );
+    _controller = CameraController(_cameras[0], ResolutionPreset.veryHigh, enableAudio: false);
+
     _controller?.initialize().then((_) {
       if (!mounted) {
         return;
@@ -197,7 +192,10 @@ class ScalableOCRState extends State<ScalableOCR> with WidgetsBindingObserver {
       });
       _controller?.startImageStream(_processCameraImage);
       setState(() {});
-    }).catchError((Object e) {
+    }).catchError((Object e) async {
+      _controller?.dispose();
+      _controller = null;
+
       if (e is CameraException) {
         switch (e.code) {
           case 'CameraAccessDenied':
@@ -281,8 +279,8 @@ class ScalableOCRState extends State<ScalableOCR> with WidgetsBindingObserver {
 
   // Stop camera live stream
   Future _stopLiveFeed() async {
-    if (!_controller!.value.isInitialized) return;
-    await _controller?.stopImageStream();
+    if (_controller?.value.isInitialized ?? false) await _controller?.stopImageStream();
+
     await _controller?.dispose();
     _controller = null;
   }
