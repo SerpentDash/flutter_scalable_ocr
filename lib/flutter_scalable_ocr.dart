@@ -281,7 +281,7 @@ class ScalableOCRState extends State<ScalableOCR> with WidgetsBindingObserver {
 
   // Stop camera live stream
   Future _stopLiveFeed() async {
-    await _controller?.stopImageStream();
+    await _controller?.stopImageStream().onError((error, stackTrace) => log("$error"));
     await _controller?.dispose();
     _controller = null;
   }
